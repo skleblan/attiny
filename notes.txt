@@ -1,0 +1,12 @@
+for I/O regs in attiny84, need to add 0x20 to address
+for some reason, the regs are addressed differently
+depending on which instructions you use
+i think we will always be using ST and LD (store and
+load), so we will add 0x20
+
+avr-gcc -mmcu=avr25 blinky01.c
+
+objcopy -O ihex a.out blinky.hex
+avrdude -p t84 -c usbtiny
+
+avrdude -p t84 -c usbtiny -U flash:w:blinky.hex:i
