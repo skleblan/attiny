@@ -1,0 +1,15 @@
+internal 8 MHz for CLK(IO)
+(not sure if this runs in any of the low power modes)
+
+no prescaling (256 = 1/32 milli second)
+
+64 prescaling (256 = 2 milli seconds)
+256 prescaling (256 = 8 milli seconds)
+1024 prescaling (256 = 32 milli seconds)
+
+w/ no prescaling at 8MHz,
+will take 8000 ticks to get to 1 milli second
+
+w/ 1024 prescaling
+will take about 8 ticks to get to 1 milli second
+
