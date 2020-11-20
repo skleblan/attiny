@@ -1,0 +1,8 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP cd4015b
+D CMOS Dual 4-Stage Static Shift Register
+K shift register serial parallel
+$ENDCMP
+#
+#End Doc Library

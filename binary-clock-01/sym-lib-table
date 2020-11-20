@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name binary-clock-01-rescue)(type Legacy)(uri ${KIPRJMOD}/binary-clock-01-rescue.lib)(options "")(descr ""))
+  (lib (name cd4015b)(type Legacy)(uri ${KIPRJMOD}/cd4015b.lib)(options "")(descr ""))
+)
