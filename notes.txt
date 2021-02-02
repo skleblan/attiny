@@ -10,3 +10,19 @@ objcopy -O ihex a.out blinky.hex
 avrdude -p t84 -c usbtiny
 
 avrdude -p t84 -c usbtiny -U flash:w:blinky.hex:i
+
+------------------------------------------
+
+ki-cad projects
+ - binary-clock-01
+
+arduino projects
+ - blinky03 - success - delay - single blinking led
+ - shift_reg_01 - success - shift reg - delay - full pwr - 4bit second timer
+ - timer_isr_01 - success - timer isr - full pwr - single blinking led
+ - timer_isr_02 - success - same as timer_isr_01
+ - sleep_clock_01 - incomplete
+ - sleep_clock_02 - success - timer isr - low pwr - single blinking led
+ - sleep_clock_03 - unknown - timer isr - low pwr - hours/mins - no buttons
+ - sleep_button_test - success - timer isr - button isr - low pwr - 2 leds
+
