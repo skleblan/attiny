@@ -22,6 +22,14 @@ int resetpin = 2;
 
 int timer_wakeup = 0;
 
+typedef struct button_latch_struct {
+  int last_val;
+  int cur_val;
+} button_latch_t;
+
+button_latch_t hrs_btn_stat;
+button_latch_t min_btn_stat;
+
 void setup() {
   pinMode(datapin, OUTPUT);
   pinMode(minutes_ones_clkpin, OUTPUT);
@@ -36,6 +44,12 @@ void setup() {
   PORTA |= (1<<minutes_button); //same for minutes button
   
   MCUCR &= ~(1<<PUD); //make sure PUD is cleared so that pullups are enabled
+
+  //buttons are active low
+  hrs_btn_stat.last_val = 1;
+  hrs_btn_stat.cur_val = 1;
+  min_btn_stat.last_val = 1;
+  min_btn_stat.cur_val = 1;
 
   cli();
   TCCR1A = 0;
@@ -119,12 +133,30 @@ void update_display()
   sendfourbits( combined_tens_clkpin, combined_tens, reverse_bits);
 }
 
+int check_falling_edge(button_latch_t btn, int pin)
+{
+  int retval;
+  btn.cur_val = digitalRead(pin);
+
+  if(btn.cur_val == 0 && btn.last_val == 1)
+  {
+    retval = 1;
+  }
+  else
+  {
+    retval = 0;
+  }
+
+  btn.last_val = btn.cur_val;
+  return retval;
+}
+
 void handle_buttons()
 {
-  int hours_val = digitalRead(hours_button);
-  int mins_val = digitalRead(minutes_button);
+  int hours_active = check_falling_edge(hrs_btn_stat, hours_button);
+  int min_active = check_falling_edge(min_btn_stat, minutes_button);
   
-  if(!hours_val)
+  if(hours_active)
   {
     hours += 1;
     if(hours > 12)
@@ -132,7 +164,7 @@ void handle_buttons()
       hours = 1;
     }
   }
-  else if(!mins_val)
+  else if(min_active)
   {
     minutes += 1;
     if(minutes > 59)
