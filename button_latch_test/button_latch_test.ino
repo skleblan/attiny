@@ -1,6 +1,5 @@
 #include <avr/io.h>
 
-int btn_pin = 9;
 int raw_led_pin = 0;
 int latch_led_pin = 2;
 
@@ -21,8 +20,8 @@ button_t btn;
 void setup() {
   pinMode(raw_led_pin, OUTPUT);
   pinMode(latch_led_pin, OUTPUT);
-  DDRA &= ~(1<<btn_pin);
-  PORTA |= (1<<btn_pin);
+  DDRB &= ~(1<<1); //port b 1 corresponds to arduino pin 9
+  PORTB |= (1<<1); //port b 1 corresponds to arduino pin 9
   MCUCR &= ~(1<<PUD);
   btn.pin = 9;
   btn.state = high;
@@ -70,7 +69,7 @@ int handle_button_states(button_t* lbtn, int active_high)
 int count = 0;
 
 void loop() {
-  digitalWrite(raw_led_pin, digitalRead(btn_pin));
+  digitalWrite(raw_led_pin, digitalRead(btn.pin));
   int latchval = handle_button_states(&btn, 0);
   digitalWrite(latch_led_pin, latchval);
   delay(10);

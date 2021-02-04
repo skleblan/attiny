@@ -12,8 +12,8 @@ int minutes = 0;
 int hours = 12;
 
 //arduino pin numbers (not same as physical pin numbers)
-int hours_button = 0;
-int minutes_button = 1;
+int hours_btn_pin = 0;
+int minutes_btn_pin = 1;
 int datapin = 3;
 int minutes_ones_clkpin = 4;  //SR_CLK_1
 int hours_ones_clkpin = 5;    //SR_CLK_2
@@ -22,13 +22,20 @@ int resetpin = 2;
 
 int timer_wakeup = 0;
 
-typedef struct button_latch_struct {
-  int last_val;
-  int cur_val;
-} button_latch_t;
+typedef enum button_latch_enum {
+  rising,
+  high,
+  falling,
+  low
+} button_state_t;
 
-button_latch_t hrs_btn_stat;
-button_latch_t min_btn_stat;
+typedef struct button_struct {
+  int pin;
+  button_state_t state;
+} button_t;
+
+button_t hrs_btn;
+button_t min_btn;
 
 void setup() {
   pinMode(datapin, OUTPUT);
@@ -37,19 +44,17 @@ void setup() {
   pinMode(combined_tens_clkpin, OUTPUT);
   pinMode(resetpin, OUTPUT);
 
-  DDRA &= ~(1<<hours_button); //hours button. clear DDRA0 to set it to input
-  PORTA |= (1<<hours_button); //hours button. set PORTA0 to high. unsure why. saw it in docs
-  
-  DDRA &= ~(1<<minutes_button); //same for minutes button
-  PORTA |= (1<<minutes_button); //same for minutes button
-  
+  DDRA &= ~(1<<hours_btn_pin); //hours button. clear DDRA0 to set it to input
+  PORTA |= (1<<hours_btn_pin); //hours button. set PORTA0 to high. unsure why. saw it in docs
+  DDRA &= ~(1<<minutes_btn_pin); //same for minutes button
+  PORTA |= (1<<minutes_btn_pin); //same for minutes button
   MCUCR &= ~(1<<PUD); //make sure PUD is cleared so that pullups are enabled
 
   //buttons are active low
-  hrs_btn_stat.last_val = 1;
-  hrs_btn_stat.cur_val = 1;
-  min_btn_stat.last_val = 1;
-  min_btn_stat.cur_val = 1;
+  hrs_btn.pin = hours_btn_pin;
+  hrs_btn.state = high;
+  min_btn.pin = minutes_btn_pin;
+  min_btn.state = low;
 
   cli();
   TCCR1A = 0;
@@ -133,28 +138,49 @@ void update_display()
   sendfourbits( combined_tens_clkpin, combined_tens, reverse_bits);
 }
 
-int check_falling_edge(button_latch_t btn, int pin)
+int handle_button_states(button_t* lbtn, int active_high)
 {
-  int retval;
-  btn.cur_val = digitalRead(pin);
-
-  if(btn.cur_val == 0 && btn.last_val == 1)
+  int retval = 0;
+  int rawval = digitalRead(lbtn->pin);
+  switch(lbtn->state)
   {
-    retval = 1;
-  }
-  else
-  {
-    retval = 0;
+    case rising:
+      if(rawval)
+      {
+        lbtn->state = high;
+        retval = 0;
+      }
+      break;
+    case high:
+      if(!rawval)
+      {
+        lbtn->state = falling;
+        retval = !active_high;
+      }
+      break;
+    case falling:
+      if(!rawval)
+      {
+        lbtn->state = low;
+        retval = 0;
+      }
+      break;
+    case low:
+      if(rawval)
+      {
+        lbtn->state = rising;
+        retval = active_high;
+      }
+      break;
   }
 
-  btn.last_val = btn.cur_val;
   return retval;
 }
 
 void handle_buttons()
 {
-  int hours_active = check_falling_edge(hrs_btn_stat, hours_button);
-  int min_active = check_falling_edge(min_btn_stat, minutes_button);
+  int hours_active = handle_button_states(&hrs_btn, 0);
+  int min_active = handle_button_states(&min_btn, 0);
   
   if(hours_active)
   {
