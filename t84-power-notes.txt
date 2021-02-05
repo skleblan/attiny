@@ -1,0 +1,32 @@
+both tests
+
+led blinking w/ 8 second period (4 sec on, 4 sec off)
+using watchdog timer to time the intervals
+
+led has 4.7k resistor attached
+
+------------------------
+
+sketch: wdt_blink_lowpwr
+processor only running on startup and during transition
+
+also, turned off everything available in Power Reduction Reg (PRR)
+
+in between changes: sleep mode power down (not sleep mode idle)
+350 uA when led off
+1040 uA when led on
+
+unknown draw when processor wakes up (order of single-digit milliseconds??)
+
+-----------------------
+
+sketch: wdt_blink_test
+in between changes: processor left active
+1.5 mA when led off
+2.5 mA when led on
+
+have visible seen spikes of 2 mA when led first changes to off
+have seen visible spikes of 2.9 mA when led first changes to on
+unknown what the true maximum spike is (too fast to see)
+
+

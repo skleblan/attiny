@@ -25,13 +25,17 @@ arduino projects
  - sleep_clock_02 - success - timer isr - low pwr - single blinking led
  - sleep_clock_03 - unknown - timer isr - low pwr - hours/mins - no buttons
  - sleep_button_test - success - timer isr - button isr - low pwr - 2 leds
+
  - bin-clk-final-sw - partial success
    - timer isr, button isr
    - low pwr via idle mode
+   - btn triggers on edge
    - todo:
      - verify bit order
      - chk "pwrdn" lowpwr mode
      - experiment w/ watchdog
-     - fix button to work more like a latch
    - displays all minutes. button partially works. bits are backwards
 
+ - button_latch_test - success - only triggers on rising/falling edge
+ - wdt_blink_test - success - setup timer w/ watchdog. blinks every 4 sec
+ - wdt_blink_lowpwr - success - same as wdt_blink_test w/ sleep in pwr down
