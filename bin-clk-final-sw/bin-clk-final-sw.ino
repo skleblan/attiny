@@ -1,12 +1,8 @@
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
-
-//1024 prescaler
-//using 1 MHz clock
-//60,000,000 / 1024 = 58593.75 ticks
-//65536-58594 = 6942 ticks remaining
-int timer_reset = 6942;
+#include <avr/wdt.h>
+#include <avr/power.h>
 
 int minutes = 0;
 int hours = 12;
@@ -56,26 +52,29 @@ void setup() {
   min_btn.pin = minutes_btn_pin;
   min_btn.state = low;
 
+  power_all_disable();
+  
+  //watchdog
   cli();
-  TCCR1A = 0;
-  TCCR1B = 0;
-
-  TCNT1 = timer_reset;
-  TCCR1B |= (1 << CS12) | (1 << CS10); //1024 prescaler
-  TIMSK1 |= (1 << TOIE1); //enable timer overflow interrupt
+  wdt_reset();
+  //set up WDT interrupt
+  WDTCSR = (1<<WDCE)|(1<<WDE);
+  //Start watchdog timer with 1s prescaller
+  WDTCSR = (1<<WDIE)|(1<<WDE)|(1<<WDP2)|(1<<WDP1);
+  
+  //Enable global interrupts
   sei();
 }
 
-ISR(TIM1_OVF_vect)
+ISR(WDT_vect)
 {
   timer_wakeup = 1;
-  TCNT1 = timer_reset; //reload initial value
   cli();
 }
 
 void skl_sleep()
 {
-  set_sleep_mode(SLEEP_MODE_IDLE);
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   
   sleep_enable();
   sei();
@@ -131,6 +130,7 @@ void update_display()
 {
   int combined_tens = 0;
   int reverse_bits = 1; //think I wired the shift registers to the LED's backwards
+  
   sendfourbits( minutes_ones_clkpin, (minutes % 10), reverse_bits );
   sendfourbits( hours_ones_clkpin, (hours % 10), reverse_bits );
 
